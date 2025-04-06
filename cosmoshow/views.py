@@ -1,7 +1,8 @@
 from rest_framework import viewsets
 
 from cosmoshow.models import ShowTheme, AstronomyShow
-from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer
+from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
+    AstronomyShowRetrieveSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -15,4 +16,6 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return AstronomyShowListSerializer
+        elif self.action == "retrieve":
+            return AstronomyShowRetrieveSerializer
         return AstronomyShowSerializer
