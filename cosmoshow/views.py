@@ -19,3 +19,8 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return AstronomyShowRetrieveSerializer
         return AstronomyShowSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        if self.action in ("list", "retrieve"):
+            return queryset.prefetch_related("themes")
