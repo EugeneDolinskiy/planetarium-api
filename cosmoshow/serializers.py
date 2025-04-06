@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from cosmoshow.models import ShowTheme
+from cosmoshow.models import ShowTheme, AstronomyShow
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -9,4 +9,15 @@ class ShowThemeSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name"
+        )
+
+
+class AstronomyShowSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = AstronomyShow
+        fields = (
+            "id",
+            "title",
+            "description",
+            "themes"
         )
