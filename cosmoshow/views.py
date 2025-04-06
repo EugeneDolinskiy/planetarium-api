@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 
-from cosmoshow.models import ShowTheme, AstronomyShow
+from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome
 from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
-    AstronomyShowRetrieveSerializer
+    AstronomyShowRetrieveSerializer, PlanetariumDomeSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -24,3 +24,8 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
         if self.action in ("list", "retrieve"):
             return queryset.prefetch_related("themes")
+
+
+class PlanetariumDomeViewSet(viewsets.ModelViewSet):
+    queryset = PlanetariumDome.objects.all()
+    serializer_class = PlanetariumDomeSerializer
