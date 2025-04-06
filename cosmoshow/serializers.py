@@ -29,3 +29,11 @@ class AstronomyShowListSerializer(AstronomyShowSerializer):
         read_only=True,
         slug_field="name"
     )
+
+    class Meta:
+        model = AstronomyShow
+        fields = (
+            "id",
+            "title",
+            "themes"
+        )
