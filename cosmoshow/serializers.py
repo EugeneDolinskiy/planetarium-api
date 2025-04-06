@@ -76,3 +76,8 @@ class ShowSessionListSerializer(ShowSessionSerializer):
         read_only=True,
         slug_field="name"
     )
+
+
+class ShowSessionRetrieveSerializer(ShowSessionSerializer):
+    astronomy_show = AstronomyShowSerializer()
+    planetarium_dome = PlanetariumDomeSerializer()
