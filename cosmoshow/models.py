@@ -27,6 +27,10 @@ class PlanetariumDome(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def capacity(self) -> int:
+        return self.rows * self.seats_in_row
+
 
 class ShowSession(models.Model):
     astronomy_show = models.ForeignKey(
