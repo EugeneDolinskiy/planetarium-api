@@ -77,5 +77,5 @@ class ShowSessionListSerializer(ShowSessionSerializer):
 
 
 class ShowSessionRetrieveSerializer(ShowSessionSerializer):
-    astronomy_show = AstronomyShowSerializer()
+    astronomy_show = AstronomyShowRetrieveSerializer()
     planetarium_dome = PlanetariumDomeSerializer()
