@@ -37,3 +37,7 @@ class AstronomyShowListSerializer(AstronomyShowSerializer):
             "title",
             "themes"
         )
+
+
+class AstronomyShowRetrieveSerializer(AstronomyShowSerializer):
+    themes = ShowThemeSerializer(many=True)
