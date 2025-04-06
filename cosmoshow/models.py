@@ -50,3 +50,20 @@ class Reservation(models.Model):
 
     def __str__(self):
         return self.created_at
+
+
+class Ticket(models.Model):
+    row = models.PositiveIntegerField()
+    seat = models.PositiveIntegerField()
+    show_session = models.ForeignKey(
+        ShowSession,
+        on_delete=models.CASCADE,
+    )
+    reservation = models.ForeignKey(
+        Reservation,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+
+    def __str__(self):
+        return f"Row: {self.row} - Seat: {self.seat} ({self.show_session.show_time})"
