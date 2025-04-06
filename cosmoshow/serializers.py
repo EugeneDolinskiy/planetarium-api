@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
+from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -81,10 +81,32 @@ class ShowSessionRetrieveSerializer(ShowSessionSerializer):
     planetarium_dome = PlanetariumDomeSerializer()
 
 
+class TickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session"
+        )
+
+
 class ReservationSerializer(serializers.ModelSerializer):
+    tickets = TickSerializer(many=True)
+
     class Meta:
         model = Reservation
         fields = (
             "id",
-            "created_at"
+            "created_at",
+            "user",
+            "tickets"
         )
+
+    def create(self, validated_data):
+        tickets_data = validated_data.pop("tickets")
+        reservation = Reservation.objects.create(**validated_data)
+        for ticket_data in tickets_data:
+            Ticket.objects.create(reservation=reservation, **ticket_data)
+        return reservation
