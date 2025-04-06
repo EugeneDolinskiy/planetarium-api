@@ -6,3 +6,12 @@ class ShowTheme(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class AstronomyShow(models.Model):
+    title = models.CharField(max_length=200, unique=True)
+    description = models.TextField()
+    themes = models.ManyToManyField(ShowTheme, related_name="astronomy_shows")
+
+    def __str__(self):
+        return self.title
