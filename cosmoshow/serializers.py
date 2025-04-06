@@ -21,3 +21,11 @@ class AstronomyShowSerializer(serializers.ModelSerializer):
             "description",
             "themes"
         )
+
+
+class AstronomyShowListSerializer(AstronomyShowSerializer):
+    themes = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name"
+    )
