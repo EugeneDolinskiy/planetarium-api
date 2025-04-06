@@ -63,3 +63,16 @@ class ShowSessionSerializer(serializers.ModelSerializer):
             "planetarium_dome",
             "show_time"
         )
+
+
+class ShowSessionListSerializer(ShowSessionSerializer):
+    astronomy_show = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="title"
+    )
+    planetarium_dome = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name"
+    )
