@@ -3,7 +3,8 @@ from rest_framework import viewsets
 from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation
 from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowListSerializer, \
     AstronomyShowRetrieveSerializer, PlanetariumDomeSerializer, ShowSessionListSerializer, \
-    ShowSessionRetrieveSerializer, ShowSessionSerializer, ReservationSerializer
+    ShowSessionRetrieveSerializer, ShowSessionSerializer, ReservationSerializer, ReservationListSerializer, \
+    ReservationRetrieveSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -50,7 +51,19 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
 
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset.filter(user=self.request.user)
+        if self.action == "list":
+            queryset = queryset.prefetch_related("tickets__show_session")
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ReservationListSerializer
+        elif self.action == "retrieve":
+            return ReservationRetrieveSerializer
+        return ReservationSerializer
