@@ -51,7 +51,8 @@ class PlanetariumDomeSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "rows",
-            "seats_in_row"
+            "seats_in_row",
+            "capacity"
         )
 
 
