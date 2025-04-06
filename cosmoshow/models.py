@@ -24,3 +24,20 @@ class PlanetariumDome(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ShowSession(models.Model):
+    astronomy_show = models.ForeignKey(
+        AstronomyShow,
+        on_delete=models.CASCADE,
+        related_name="sessions"
+    )
+    planetarium_dome = models.ForeignKey(
+        PlanetariumDome,
+        on_delete=models.CASCADE,
+        related_name="sessions"
+    )
+    show_time = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.astronomy_show}({self.planetarium_dome}) start at {self.show_time}"
