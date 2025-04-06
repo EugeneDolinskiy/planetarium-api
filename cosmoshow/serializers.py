@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
@@ -81,7 +82,7 @@ class ShowSessionRetrieveSerializer(ShowSessionSerializer):
     planetarium_dome = PlanetariumDomeSerializer()
 
 
-class TickSerializer(serializers.ModelSerializer):
+class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = (
@@ -93,20 +94,49 @@ class TickSerializer(serializers.ModelSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
-    tickets = TickSerializer(many=True)
+    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
     class Meta:
         model = Reservation
         fields = (
             "id",
             "created_at",
-            "user",
             "tickets"
         )
 
     def create(self, validated_data):
-        tickets_data = validated_data.pop("tickets")
-        reservation = Reservation.objects.create(**validated_data)
-        for ticket_data in tickets_data:
-            Ticket.objects.create(reservation=reservation, **ticket_data)
-        return reservation
+        with transaction.atomic():
+            tickets_data = validated_data.pop("tickets")
+            reservation = Reservation.objects.create(**validated_data)
+            for ticket_data in tickets_data:
+                Ticket.objects.create(reservation=reservation, **ticket_data)
+            return reservation
+
+
+class TicketListSerializer(serializers.ModelSerializer):
+    show_session = ShowSessionListSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session"
+        )
+
+
+class ReservationListSerializer(ReservationSerializer):
+    tickets = TicketListSerializer(read_only=True, many=True)
+
+
+class ReservationRetrieveSerializer(ReservationSerializer):
+    tickets = TicketListSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "id",
+            "created_at",
+            "tickets"
+        )
