@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome
+from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -51,4 +51,15 @@ class PlanetariumDomeSerializer(serializers.ModelSerializer):
             "name",
             "rows",
             "seats_in_row"
+        )
+
+
+class ShowSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShowSession
+        fields = (
+            "id",
+            "astronomy_show",
+            "planetarium_dome",
+            "show_time"
         )
