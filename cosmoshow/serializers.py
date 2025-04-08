@@ -86,8 +86,6 @@ class TicketSeatSerializer(serializers.ModelSerializer):
 
 
 class ShowSessionRetrieveSerializer(ShowSessionSerializer):
-    astronomy_show = AstronomyShowRetrieveSerializer()
-    planetarium_dome = PlanetariumDomeSerializer()
     astronomy_show = AstronomyShowListSerializer(read_only=True)
     planetarium_dome = PlanetariumDomeListSerializer(read_only=True)
     tickets_taken = TicketSeatSerializer(many=True, read_only=True)
@@ -135,31 +133,3 @@ class ReservationSerializer(serializers.ModelSerializer):
                 Ticket.objects.create(reservation=reservation, **ticket_data)
             return reservation
 
-
-class TicketListSerializer(serializers.ModelSerializer):
-    show_session = ShowSessionListSerializer(read_only=True)
-
-    class Meta:
-        model = Ticket
-        fields = (
-            "id",
-            "row",
-            "seat",
-            "show_session"
-        )
-
-
-class ReservationListSerializer(ReservationSerializer):
-    tickets = TicketListSerializer(read_only=True, many=True)
-
-
-class ReservationRetrieveSerializer(ReservationSerializer):
-    tickets = TicketListSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = Reservation
-        fields = (
-            "id",
-            "created_at",
-            "tickets"
-        )
