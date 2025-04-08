@@ -114,6 +114,19 @@ class TicketSerializer(serializers.ModelSerializer):
         )
 
 
+class TicketListSerializer(serializers.ModelSerializer):
+    show_session = ShowSessionListSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session"
+        )
+
+
 class ReservationSerializer(serializers.ModelSerializer):
     tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
@@ -132,4 +145,3 @@ class ReservationSerializer(serializers.ModelSerializer):
             for ticket_data in tickets_data:
                 Ticket.objects.create(reservation=reservation, **ticket_data)
             return reservation
-
