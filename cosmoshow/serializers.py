@@ -13,15 +13,10 @@ class ShowThemeSerializer(serializers.ModelSerializer):
         )
 
 
-class AstronomyShowSerializer(serializers.ModelSerializer):
+class AstronomyShowBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = AstronomyShow
-        fields = (
-            "id",
-            "title",
-            "description",
-            "themes"
-        )
+        fields = ("id", "title", "description", "themes")
 
 
 class AstronomyShowListSerializer(AstronomyShowSerializer):
