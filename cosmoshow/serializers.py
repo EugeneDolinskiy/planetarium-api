@@ -79,6 +79,11 @@ class ShowSessionListSerializer(ShowSessionSerializer):
         )
 
 
+class TicketSeatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = ("row", "seat")
+
 
 class ShowSessionRetrieveSerializer(ShowSessionSerializer):
     astronomy_show = AstronomyShowRetrieveSerializer()
