@@ -1,8 +1,11 @@
-from django.db.models import F, Count
+from django.db.models import F, Count, Prefetch
 from rest_framework import viewsets
 
-from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession
-from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowBaseSerializer, AstronomyShowListSerializer, AstronomyShowRetrieveSerializer, PlanetariumDomeBaseSerializer, ShowSessionListSerializer, ShowSessionRetrieveSerializer, ShowSessionSerializer
+from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
+from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowBaseSerializer, AstronomyShowListSerializer, \
+    AstronomyShowRetrieveSerializer, PlanetariumDomeBaseSerializer, ShowSessionListSerializer, \
+    ShowSessionRetrieveSerializer, ShowSessionSerializer, ReservationSerializer, ReservationListSerializer, \
+    ReservationRetrieveSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -49,3 +52,32 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return ShowSessionRetrieveSerializer
         return ShowSessionSerializer
+
+
+class ReservationViewSet(viewsets.ModelViewSet):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+
+    def get_serializer_class(self):
+        serializer = self.serializer_class
+        if self.action == "list":
+            return ReservationListSerializer
+        elif self.action == "retrieve":
+            return ReservationRetrieveSerializer
+        return serializer
+
+    def get_queryset(self):
+        first_ticket_prefetch = Prefetch(
+            "tickets",
+            queryset=Ticket.objects.select_related(
+                "show_session__astronomy_show",
+                "show_session__planetarium_dome"
+            ).order_by("id"), to_attr="prefetched_tickets")
+        return (
+            Reservation.objects
+            .filter(user=self.request.user)
+            .prefetch_related(first_ticket_prefetch)
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
