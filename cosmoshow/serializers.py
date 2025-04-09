@@ -175,3 +175,41 @@ class ReservationSerializer(serializers.ModelSerializer):
                 Ticket.objects.create(reservation=reservation, **ticket_data)
 
             return reservation
+
+
+class ReservationListSerializer(serializers.ModelSerializer):
+    show_title = serializers.SerializerMethodField()
+    tickets_count = serializers.SerializerMethodField()
+    session_date = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reservation
+        fields = ("id", "created_at", "show_title", "session_date", "tickets_count")
+
+    def get_first_ticket(self, obj):
+        return obj.prefetched_tickets[0] if hasattr(obj, "prefetched_tickets") and obj.prefetched_tickets else None
+
+    def get_tickets_count(self, obj):
+        return len(obj.prefetched_tickets) if hasattr(obj, "prefetched_tickets") else 0
+
+    def get_show_title(self, obj):
+        ticket = self.get_first_ticket(obj)
+        if ticket and ticket.show_session and ticket.show_session.astronomy_show:
+            return ticket.show_session.astronomy_show.title
+
+    def get_session_date(self, obj):
+        ticket = self.get_first_ticket(obj)
+        if ticket and ticket.show_session and ticket.show_session.show_time:
+            return ticket.show_session.show_time.strftime("%Y-%m-%d, %H:%M")
+
+    def get_created_at(self, obj):
+        return obj.created_at.strftime("%Y-%m-%d, %H:%M")
+
+
+class ReservationRetrieveSerializer(serializers.ModelSerializer):
+    tickets = TicketListSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Reservation
+        fields = ("id", "created_at", "tickets")
