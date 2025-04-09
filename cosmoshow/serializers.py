@@ -67,6 +67,7 @@ class ShowSessionListSerializer(ShowSessionSerializer):
         read_only=True
     )
     tickets_available = serializers.IntegerField(read_only=True)
+    show_time = serializers.SerializerMethodField()
 
     class Meta:
         model = ShowSession
@@ -76,7 +77,14 @@ class ShowSessionListSerializer(ShowSessionSerializer):
             "dome_name",
             "dome_capacity",
             "tickets_available"
+            "tickets_available",
+            "show_time"
         )
+
+    def get_show_time(self, obj):
+        if obj.show_time:
+            return obj.show_time.strftime("%Y-%m-%d, %H:%M")
+        return None
 
 
 class TicketSeatSerializer(serializers.ModelSerializer):
