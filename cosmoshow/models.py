@@ -73,3 +73,21 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"Row: {self.row} - Seat: {self.seat} ({self.show_session.show_time})"
+
+    @staticmethod
+    def validate_row(row: int, num_rows: int, error_to_raise):
+        if not (1 <= row <= num_rows):
+            raise error_to_raise(
+                {
+                    "row": f"row must be in range [1 , {num_rows}], not {row}"
+                }
+            )
+
+    @staticmethod
+    def validate_seat(seat: int, num_seats: int, error_to_raise):
+        if not (1 <= seat <= num_seats):
+            raise error_to_raise(
+                {
+                    "seat": f"seat must be in range [1 , {num_seats}], not {seat}"
+                }
+            )
