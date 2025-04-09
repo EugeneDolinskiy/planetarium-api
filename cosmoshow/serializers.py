@@ -1,5 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
 
@@ -156,6 +157,21 @@ class ReservationSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             tickets_data = validated_data.pop("tickets")
             reservation = Reservation.objects.create(**validated_data)
+
             for ticket_data in tickets_data:
+                show_session = ticket_data.get("show_session")
+                row = ticket_data.get("row")
+                seat = ticket_data.get("seat")
+
+                existing_ticket = Ticket.objects.filter(
+                    show_session=show_session,
+                    row=row,
+                    seat=seat
+                ).exists()
+
+                if existing_ticket:
+                    raise ValidationError(f"Seat {row}-{seat} is already taken for this show session.")
+
                 Ticket.objects.create(reservation=reservation, **ticket_data)
+
             return reservation
