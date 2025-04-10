@@ -2,11 +2,27 @@ from django.db.models import F, Count, Prefetch, Q
 from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 
-from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
-from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowBaseSerializer, AstronomyShowListSerializer, \
-    AstronomyShowRetrieveSerializer, PlanetariumDomeBaseSerializer, ShowSessionListSerializer, \
-    ShowSessionRetrieveSerializer, ShowSessionSerializer, ReservationSerializer, ReservationListSerializer, \
-    ReservationRetrieveSerializer
+from cosmoshow.models import (
+    ShowTheme,
+    AstronomyShow,
+    PlanetariumDome,
+    ShowSession,
+    Reservation,
+    Ticket,
+)
+from cosmoshow.serializers import (
+    ShowThemeSerializer,
+    AstronomyShowBaseSerializer,
+    AstronomyShowListSerializer,
+    AstronomyShowRetrieveSerializer,
+    PlanetariumDomeBaseSerializer,
+    ShowSessionListSerializer,
+    ShowSessionRetrieveSerializer,
+    ShowSessionSerializer,
+    ReservationSerializer,
+    ReservationListSerializer,
+    ReservationRetrieveSerializer,
+)
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
@@ -116,23 +132,22 @@ class ReservationViewSet(viewsets.ModelViewSet):
         first_ticket_prefetch = Prefetch(
             "tickets",
             queryset=Ticket.objects.select_related(
-                "show_session__astronomy_show",
-                "show_session__planetarium_dome"
+                "show_session__astronomy_show", "show_session__planetarium_dome"
             ).order_by("id"),
-            to_attr="prefetched_tickets"
+            to_attr="prefetched_tickets",
         )
 
-        queryset = (
-            Reservation.objects
-            .filter(user=self.request.user)
-            .prefetch_related(first_ticket_prefetch)
+        queryset = Reservation.objects.filter(user=self.request.user).prefetch_related(
+            first_ticket_prefetch
         )
 
         if title or date:
             filters = Q()
 
             if title:
-                filters &= Q(tickets__show_session__astronomy_show__title__icontains=title)
+                filters &= Q(
+                    tickets__show_session__astronomy_show__title__icontains=title
+                )
 
             if date:
                 parsed_date = parse_date(date)
