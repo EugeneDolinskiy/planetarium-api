@@ -1,4 +1,4 @@
-from django.db.models import F, Count, Prefetch
+from django.db.models import F, Count, Prefetch, Q
 from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 
@@ -110,17 +110,38 @@ class ReservationViewSet(viewsets.ModelViewSet):
         return serializer
 
     def get_queryset(self):
+        title = self.request.query_params.get("title")
+        date = self.request.query_params.get("date")
+
         first_ticket_prefetch = Prefetch(
             "tickets",
             queryset=Ticket.objects.select_related(
                 "show_session__astronomy_show",
                 "show_session__planetarium_dome"
-            ).order_by("id"), to_attr="prefetched_tickets")
-        return (
+            ).order_by("id"),
+            to_attr="prefetched_tickets"
+        )
+
+        queryset = (
             Reservation.objects
             .filter(user=self.request.user)
             .prefetch_related(first_ticket_prefetch)
         )
+
+        if title or date:
+            filters = Q()
+
+            if title:
+                filters &= Q(tickets__show_session__astronomy_show__title__icontains=title)
+
+            if date:
+                parsed_date = parse_date(date)
+                if parsed_date:
+                    filters &= Q(tickets__show_session__show_time__date=parsed_date)
+
+            queryset = queryset.filter(filters).distinct()
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
