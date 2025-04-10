@@ -1,4 +1,5 @@
 from django.db.models import F, Count, Prefetch
+from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 
 from cosmoshow.models import ShowTheme, AstronomyShow, PlanetariumDome, ShowSession, Reservation, Ticket
@@ -79,6 +80,21 @@ class ShowSessionViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return ShowSessionRetrieveSerializer
         return ShowSessionSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        title = self.request.query_params.get("title")
+        date = self.request.query_params.get("date")
+
+        if title:
+            queryset = queryset.filter(astronomy_show__title__icontains=title)
+
+        if date:
+            parsed_date = parse_date(date)
+            if parsed_date:
+                queryset = queryset.filter(show_time__date=date)
+
+        return queryset.distinct()
 
 
 class ReservationViewSet(viewsets.ModelViewSet):
