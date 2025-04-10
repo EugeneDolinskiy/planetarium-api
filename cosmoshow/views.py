@@ -36,8 +36,15 @@ class AstronomyShowViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset
+        title = self.request.query_params.get("title")
+
         if self.action in ("list", "retrieve"):
-            return queryset.prefetch_related("themes")
+            queryset = queryset.prefetch_related("themes")
+
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+
+        return queryset.distinct()
 
 
 class PlanetariumDomeViewSet(viewsets.ModelViewSet):
