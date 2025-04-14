@@ -1,162 +1,120 @@
-from django.db.models import F, Count, Prefetch, Q
-from django.utils.dateparse import parse_date
+from django.db.models import F, Count
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
-from cosmoshow.models import (
-    ShowTheme,
-    AstronomyShow,
-    PlanetariumDome,
-    ShowSession,
-    Reservation,
-    Ticket,
-)
-from cosmoshow.serializers import (
-    ShowThemeSerializer,
-    AstronomyShowBaseSerializer,
-    AstronomyShowListSerializer,
-    AstronomyShowRetrieveSerializer,
-    PlanetariumDomeBaseSerializer,
-    ShowSessionListSerializer,
-    ShowSessionRetrieveSerializer,
-    ShowSessionSerializer,
-    ReservationSerializer,
-    ReservationListSerializer,
-    ReservationRetrieveSerializer,
-)
+from cosmoshow.models import ShowTheme, AstronomyShow, ShowSession, Reservation, PlanetariumDome
+from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowRetrieveSerializer, \
+    ShowSessionListSerializer, ShowSessionRetrieveSerializer, ShowSessionSerializer, ReservationSerializer, \
+    ReservationListSerializer, PlanetariumDomeSerializer
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
     queryset = ShowTheme.objects.all()
     serializer_class = ShowThemeSerializer
 
-    def get_queryset(self):
-        queryset = self.queryset
-        name = self.request.query_params.get("name")
 
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-
-        queryset = queryset.distinct()
-
-        return queryset
+class PlanetariumDomeViewSet(viewsets.ModelViewSet):
+    queryset = PlanetariumDome.objects.all()
+    serializer_class = PlanetariumDomeSerializer
 
 
 class AstronomyShowViewSet(viewsets.ModelViewSet):
     queryset = AstronomyShow.objects.all()
+    serializer_class = AstronomyShowSerializer
+
+    @staticmethod
+    def _params_to_ints(query_string):
+        return [int(str_id) for str_id in query_string.split(",")]
 
     def get_serializer_class(self):
         if self.action == "list":
-            return AstronomyShowListSerializer
+            return AstronomyShowSerializer
         elif self.action == "retrieve":
             return AstronomyShowRetrieveSerializer
-        return AstronomyShowBaseSerializer
+
+        return AstronomyShowSerializer
 
     def get_queryset(self):
         queryset = self.queryset
-        title = self.request.query_params.get("title")
 
-        if self.action in ("list", "retrieve"):
-            queryset = queryset.prefetch_related("themes")
+        themes = self.request.query_params.get("themes")
 
-        if title:
-            queryset = queryset.filter(title__icontains=title)
+        if themes:
+            themes = self._params_to_ints(themes)
+            queryset = queryset.filter(themes__id__in=themes)
 
-        return queryset.distinct()
+        queryset = queryset.distinct()
 
+        if self.action in ["list", "retrieve"]:
+            return queryset.prefetch_related("themes")
 
-class PlanetariumDomeViewSet(viewsets.ModelViewSet):
-    queryset = PlanetariumDome.objects.all()
-    serializer_class = PlanetariumDomeBaseSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-        name = self.request.query_params.get("name")
-
-        if name:
-            queryset = queryset.filter(name__icontains=name)
-
-        return queryset.distinct()
+        return queryset
 
 
 class ShowSessionViewSet(viewsets.ModelViewSet):
-    queryset = (
-        ShowSession.objects.all()
-        .select_related("astronomy_show", "planetarium_dome")
-        .annotate(
-            tickets_available=(
-                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
-                - Count("tickets_taken")
-            )
-        )
-    )
+    queryset = ShowSession.objects.all()
 
     def get_serializer_class(self):
         if self.action == "list":
             return ShowSessionListSerializer
         elif self.action == "retrieve":
             return ShowSessionRetrieveSerializer
+
         return ShowSessionSerializer
 
     def get_queryset(self):
         queryset = self.queryset
-        title = self.request.query_params.get("title")
-        date = self.request.query_params.get("date")
 
-        if title:
-            queryset = queryset.filter(astronomy_show__title__icontains=title)
+        if self.action == "list":
+            tickets_available = (
+                F("planetarium_dome__rows") * F("planetarium_dome__seats_in_row")
+                - Count("tickets_taken")
+            )
 
-        if date:
-            parsed_date = parse_date(date)
-            if parsed_date:
-                queryset = queryset.filter(show_time__date=date)
+            return (
+                queryset
+                .select_related()
+                .annotate(tickets_available=tickets_available)
+                .order_by("id")
+            )
 
-        return queryset.distinct()
+        if self.action == "retrieve":
+            return queryset.select_related()
+
+        return queryset
+
+
+class ReservationSetPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = "page_size"
+    max_page_size = 20
 
 
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-
-    def get_serializer_class(self):
-        serializer = self.serializer_class
-        if self.action == "list":
-            return ReservationListSerializer
-        elif self.action == "retrieve":
-            return ReservationRetrieveSerializer
-        return serializer
+    pagination_class = ReservationSetPagination
 
     def get_queryset(self):
-        title = self.request.query_params.get("title")
-        date = self.request.query_params.get("date")
+        queryset = self.queryset.filter(user=self.request.user)
 
-        first_ticket_prefetch = Prefetch(
-            "tickets",
-            queryset=Ticket.objects.select_related(
-                "show_session__astronomy_show", "show_session__planetarium_dome"
-            ).order_by("id"),
-            to_attr="prefetched_tickets",
-        )
+        if self.action == "list":
+            queryset = queryset.prefetch_related(
+                "tickets__show_session__astronomy_show",
+                "tickets__show_session__planetarium_dome"
+            )
 
-        queryset = Reservation.objects.filter(user=self.request.user).prefetch_related(
-            first_ticket_prefetch
-        )
-
-        if title or date:
-            filters = Q()
-
-            if title:
-                filters &= Q(
-                    tickets__show_session__astronomy_show__title__icontains=title
-                )
-
-            if date:
-                parsed_date = parse_date(date)
-                if parsed_date:
-                    filters &= Q(tickets__show_session__show_time__date=parsed_date)
-
-            queryset = queryset.filter(filters).distinct()
+        if self.action == "retrieve":
+            return queryset.prefetch_related(
+                "tickets__show_session__astronomy_show"
+            )
 
         return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_serializer_class(self):
+        serializer = self.serializer_class
+
+        if self.action == "list":
+            serializer = ReservationListSerializer
+
+        return serializer
