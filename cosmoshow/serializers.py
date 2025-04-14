@@ -79,7 +79,7 @@ class TicketSerializer(serializers.ModelSerializer):
             "id",
             "row",
             "seat",
-            "show_session",
+            "show_session"
         ]
 
     def validate(self, attrs):
@@ -122,14 +122,6 @@ class TicketListSerializer(TicketSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
-    tickets = TicketListSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Reservation
-        fields = ["id", "created_at", "tickets"]
-
-
-class ReservationListSerializer(ReservationSerializer):
     tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
     class Meta:
@@ -143,3 +135,7 @@ class ReservationListSerializer(ReservationSerializer):
             for ticket_data in tickets_data:
                 Ticket.objects.create(reservation=reservation, **ticket_data)
             return reservation
+
+
+class ReservationListSerializer(ReservationSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)
