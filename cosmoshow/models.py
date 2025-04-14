@@ -80,3 +80,11 @@ class Ticket(models.Model):
             raise error_to_raise(
                 {"seat": f"seat must be in range [1 , {num_seats}], not {seat}"}
             )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['show_session', 'row', 'seat'],
+                name='unique_ticket_per_session_seat'
+            )
+        ]
