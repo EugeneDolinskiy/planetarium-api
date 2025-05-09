@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "cosmoshow",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -123,6 +124,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+AUTH_USER_MODEL = "users.User"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -137,12 +139,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%d.%m.%Y %H:%M",
     'DATE_FORMAT': "%d.%m.%Y",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/day',
-        'user': '100/day'
+        'anon': '10/min',
+        'user': '100/min'
     }
 }
