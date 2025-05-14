@@ -10,8 +10,14 @@ from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, 
 
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
-    queryset = ShowTheme.objects.all()
     serializer_class = ShowThemeSerializer
+
+    def get_queryset(self):
+        queryset = ShowTheme.objects.all()
+        name = self.request.query_params.get("name")
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
 
 
 class PlanetariumDomeViewSet(viewsets.ModelViewSet):
