@@ -1,7 +1,7 @@
 from django.db.models import F, Count
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
 
 from cosmoshow.models import ShowTheme, AstronomyShow, ShowSession, Reservation, PlanetariumDome
 from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, AstronomyShowRetrieveSerializer, \
@@ -9,6 +9,16 @@ from cosmoshow.serializers import ShowThemeSerializer, AstronomyShowSerializer, 
     ReservationListSerializer, PlanetariumDomeSerializer
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="name",
+            description="Filter by part of the show topic name",
+            required=False,
+            type=str,
+        )
+    ]
+)
 class ShowThemeViewSet(viewsets.ModelViewSet):
     serializer_class = ShowThemeSerializer
 
