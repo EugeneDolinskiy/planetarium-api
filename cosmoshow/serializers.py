@@ -31,7 +31,7 @@ class AstronomyShowRetrieveSerializer(AstronomyShowSerializer):
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlanetariumDome
-        fields = ["id", "name", "capacity"]
+        fields = ["id", "name", "rows", "seats_in_row", "capacity"]
 
 
 class ShowSessionSerializer(serializers.ModelSerializer):
