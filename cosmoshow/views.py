@@ -51,6 +51,16 @@ class PlanetariumDomeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="themes",
+            description="Filter by a comma-separated list of theme IDs",
+            required=False,
+            type=str,
+        ),
+    ]
+)
 class AstronomyShowViewSet(viewsets.ModelViewSet):
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
