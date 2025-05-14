@@ -30,6 +30,16 @@ class ShowThemeViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="name",
+            description="Filter by part of the Planetarium Dome name",
+            required=False,
+            type=str,
+        )
+    ]
+)
 class PlanetariumDomeViewSet(viewsets.ModelViewSet):
     serializer_class = PlanetariumDomeSerializer
 
