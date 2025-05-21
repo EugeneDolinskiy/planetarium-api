@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class CosmoshowConfig(AppConfig):
+class UsersConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "cosmoshow"
+    name = "users"
